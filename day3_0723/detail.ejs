@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+* {box-sizing: border-box;}
+
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+input[type=button] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+.container {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+</style>
+<script>
+function edit(){
+  location.href = "board/update";
+}
+
+function del(){
+  location.href = "/board/delete";
+}
+
+
+function showList(){
+  location.href = "/board/list";
+}
+  
+</script>
+</head>
+<body>
+
+<h3>Contact Form</h3>
+
+<div class="container">
+  <form action="/board/regist" method="post">
+    <input type="hidden" name="board_id" value="<%=board.board_id%>">  
+    <input type="text" name="title" value="<%=board.title%>">   
+    <input type="text" name="writer" value="<%=board.writer%>">
+    <textarea name="content" style="height:200px"><%=board.content%></textarea>
+    <input type="button" value="수정" onclick="edit()">
+    <input type="button" value="삭제" onclick="del()">
+    <input type="button" value="목록" onclick="showList()">
+  </form>
+</div>
+
+</body>
+</html>

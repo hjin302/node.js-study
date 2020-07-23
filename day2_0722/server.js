@@ -60,7 +60,7 @@ var server = http.createServer(function(request, response){
         fs.readFile("./images/img_1.jpg",function(err,data){
             response.end(data);
         });
-    }else{
+    }else{z
         response.writeHead(404,{"Content-Type":"text/html;charset=utf-8"})
         response.end("요청하신 자원은 서버에 없습니다.");
     }
