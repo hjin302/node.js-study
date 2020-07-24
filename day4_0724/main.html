@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style>
+#wrapper{
+    width:1200px;
+    height:650px;
+    background:yellow;
+    margin:auto;
+}
+#registArea, #infoArea{
+    width:200px;
+    height:100%;
+    background:greenyellow;
+    float: left;
+}
+#contentArea{
+    width:800px;
+    height:100%;
+    background:lightblue;
+    float: left;
+}
+#tableArea{
+    width:100%;
+    height: 200px;
+    background: lightsalmon;
+}
+#mapArea{
+    width:100%;
+    height:450px;
+    background: lightsteelblue;
+}
+input{
+    width:95%;
+    height: 45px;
+    font-size:13pt;
+    margin: 2px;
+}
+button{
+    width:35%;
+    height:45px;
+    background: mediumaquamarine;
+    color: mediumblue;
+    font-weight: bold;
+    font-size: 20px;
+    margin: 5px;
+}
+</style>
+<script>
+var map;
+function initMap() {
+var mapProp= {
+    center:new google.maps.LatLng(37.569086, 126.984610),
+    zoom:18,
+};
+    map = new google.maps.Map(document.getElementById("mapArea"),mapProp);
+}
+$(function(){
+    getList();
+
+    $("#registArea button").click(function(){
+        regist();
+    });
+
+    $($("#infoArea button")[0]).click(function(){
+        if(confirm("수정하실래요?")){
+            edit();
+        }
+    });
+
+    $($("#infoArea button")[1]).click(function(){
+        if(confirm("삭제하실래요?")){
+            del();
+        }
+    });
+});
+
+//비동기로 서버에 요청하자
+function regist(){
+    //비동기 전송시 form 이용하자
+    // var formData = new FormData($("form")[0]);
+    $.ajax({
+        url:"/map/regist",
+        type:"post",
+        
+        data:{
+            "lati":$($("input[name='lati']")[0]).val(),
+            "longi":$($("input[name='longi']")[0]).val(),
+            "name":$($("input[name='name']")[0]).val()
+        },
+        //data:formData,
+        //processData:false,
+        success:function(result){
+            getList();
+        },
+        error:function(xhr, status, error){
+
+        }
+    });
+}
+//목록 가져와서 테이블에 출력
+function getList(){
+    $.ajax({
+        url:"/map/list",
+        type:"get",
+        success:function(result){
+            //alert(result);
+            var tag="<table width=\"100%\" border=\"1px\">";
+            tag+="<tr>";
+            tag+="<td>위도</td>";
+            tag+="<td>경도</td>";
+            tag+="<td>맛집</td>";
+            tag+="</tr>";
+            for(var i=0; i<result.length;i++){
+                var json = result[i];
+                setMarker(json); //마커 생성
+                tag+="<tr onClick=\"getDetail("+json.store_id+")\">";
+                tag+="<td>"+json.lati+"</td>";
+                tag+="<td>"+json.longi+"</td>";
+                tag+="<td>"+json.name+"</td>";
+                tag+="</tr>";
+            }
+            tag+="</table>";
+            $("#tableArea").html(tag);
+        }
+    });
+
+}
+
+//상세보기 요청
+function getDetail(store_id){
+    $.ajax({
+        url:"/map/detail?store_id="+store_id,
+        type:"get",
+        success:function(result){
+            $("input[name='store_id']").val(result[0].store_id);
+            $($("input[name='lati']")[1]).val(result[0].lati);
+            $($("input[name='longi']")[1]).val(result[0].longi);
+            $($("input[name='name']")[1]).val(result[0].name);
+        }
+    });
+}
+
+//마커 1개를 생성하는 함수
+function setMarker(store){
+    var center=new google.maps.LatLng(store.lati, store.longi);
+    var marker = new google.maps.Marker({position: center});
+    marker.setMap(map);
+}
+
+//삭제 요청
+function del(){
+    $.ajax({
+       url:"/map/del?store_id="+$("input[name='store_id']").val(),
+       type:"get",
+       success:function(result){
+            if(result.resultCode==1){
+                getList();
+            }else{
+                alert("삭제 실패");
+            }
+       } 
+    });
+}
+//수정요청
+function edit(){
+    $.ajax({
+        url:"/map/edit",
+        type:"post",
+        
+        data:{
+            "store_id":$("input[name='store_id']").val(),
+            "lati":$($("input[name='lati']")[1]).val(),
+            "longi":$($("input[name='longi']")[1]).val(),
+            "name":$($("input[name='name']")[1]).val()
+        },
+        //data:formData,
+        //processData:false,
+        success:function(result){
+            if(result.resultCode==1){
+                alert("수정 완료");
+            }else{
+                alert("수정 실패");
+            }
+        },
+        error:function(xhr, status, error){
+
+        }
+    });
+}
+
+</script>
+
+</head>
+<body>
+    <div id="wrapper">
+        <div id="registArea">
+            <form>
+                <input type="text" name="lati" placeholder="위도"/>
+                <input type="text" name="longi" placeholder="경도"/>
+                <input type="text" name="name" placeholder="맛집이름"/>
+            </form>
+            <button>등록</button>
+        </div>
+        <div id="contentArea">
+            <div id="tableArea"></div>
+            <div id="mapArea"></div>
+        </div>
+        <div id="infoArea">
+            <form>
+                <input type="hidden" name="store_id" />
+                <input type="text" name="lati"/>
+                <input type="text" name="longi"/>
+                <input type="text" name="name"/>
+            </form>
+            <button>수정</button>
+            <button>삭제</button>
+        </div>
+
+    </div>
+</body>
+</html>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE3tlIm3piGVpN9RYdrC1uXvJ8UyWj1qo&callback=initMap"></script>
