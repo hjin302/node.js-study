@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 16px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+<script type="text/babel">
+    //게시판에 출력될 테이블을 컴포넌트로 정의
+    //추후 이 컴포넌트를 재사용할 수 있다
+    class BoardTable extends React.Component{
+      
+      render(){
+        //태그를 모아놓을 배열 선언
+        var row=[];
+        for(var i=0; i<this.props.data.length; i++){
+         var board = this.props.data[i];
+    
+          row.push(
+            <tr>
+              <td>{board.board_id}</td>
+              <td><a href={"/board/detail?board_id="+board.board_id}>{board.title}</a></td>
+              <td>{board.writer}</td>
+              <td>{board.regdate}</td>
+              <td>{board.hit}</td>
+            </tr>
+          );
+        }
+        return(
+          <table>
+            <tr>
+              <th>No</th>
+              <th>title</th>
+              <th>작성자</th>
+              <th>등록일</th>
+              <th>조회수</th>
+            </tr>
+            {row}
+            <td colspan="5">
+                <button onClick={goRegistForm}>글쓰기</button>
+              </td>
+        </table>
+        )
+      };
+    }
+  $(function(){
+    getList();
+    //dom 객체를 넣는 방식
+    //var span = document.createElement("span");
+    //span.innerHTML="안녕";
+    //container.appendChild(span);
+
+   
+  });
+  function getList(){
+    $.ajax({
+      url:"/board/list",
+      type:"get",
+      success:function(result){
+        console.log(result);
+        //DOM을 제어하는 것 자체가 UI 복잡할 경우 까다롭고 효율성이 떨어진다.
+        //Front-end 측면의 기술이 많이 등장해옴..
+        //google : Aungular
+        //facebook : react
+        //vue
+        ReactDOM.render(<BoardTable data={result} />, document.getElementById("container"));
+      }
+    });
+  }
+
+  function goRegistForm(){
+    location.href="/board/registForm.html";
+  }
+</script>
+</head>
+<body>
+  <h2>비동기 게시판(React)</h2>
+  <p>For zebra-striped tables, use the nth-child() selector and add a background-color to all even (or odd) table rows:</p>
+  <div id="container"></div>
+
+</body>
+</html>
