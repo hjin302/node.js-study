@@ -1,0 +1,143 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('socketapp:server');
+var http = require('http');
+var socketio = require("socket.io");
+var WebSocket = require("ws");
+
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+
+
+/*----------------------------------
+socket io 서버 관련!
+----------------------------------*/
+
+//접속처리
+
+//웹소켓 서버는 웹서버에 의존하여 실행된다.
+//따라서 별도의 ip, 포트가 필요없다
+var clientArray=[];
+var io = socketio.listen(server);//소켓 서버 가동
+
+io.sockets.on("connection", function(socket){
+  
+  clientArray.push(socket);
+  console.log("접속자 %d명", clientArray.length);
+
+
+  socket.on("data", function(data){
+    console.log("클라이언트의 메시지 : ", data);
+
+    //클라이언트에게 전송
+    for(var i=0; i<clientArray.length; i++){
+      clientArray[i].emit("data", data);
+    }
+  });
+ 
+});
+
+/*----------------------------------
+WebSocket 모듈 관련!
+
+var clientArray = []; //여러개의 소켓을 보관할 배열
+var ws = new WebSocket.Server({port:7878});
+ws.on("connection", function(socket){
+  clientArray.push(socket);
+  console.log("현재 %d명 접속" , clientArray.length);
+
+  socket.on("message", function(data){
+    console.log("클라이언트의 메시지 : ", data);
+
+    //접속한 클라이언트를 대상으로 모두에게 메시지 보내기
+    for(var i=0;i<clientArray.length;i++){
+      clientArray[i].send(data);
+    }
+  });
+});
+----------------------------------*/

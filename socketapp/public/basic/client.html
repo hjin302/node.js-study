@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+* {box-sizing: border-box;}
+
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+}
+
+input[type=submit] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+.container {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+
+<script type="text/babel">
+var socket;
+class IpList extends React.Component{
+    //화면에 표현할 코드
+    render(){
+        return (
+            <select>
+                <option>192.168.0.254</option>
+                <option>192.168.0.5</option>
+            </select>
+        );
+    }
+}
+$(function(){
+  init();
+
+  //$("input[type='submit']").click(function(){
+  //  connect();
+  //});
+
+  //키보드 이벤트 구현
+  $("input[name='t_input']").on("keyup", function(e){
+    if(e.keyCode==13){
+      send();
+    }
+  });
+  connect();
+});
+
+function init(){
+  //ReactDOM.render(<IpList/>,$("#ipArea")[0]);
+}
+
+//소켓 서버에 접속
+function connect(){
+  socket = io(); //which host?
+
+  socket.on("data", function(data){
+      $("textarea").append(data+"\n");
+    });
+}
+//데이터 전송
+function send(){
+  socket.emit("data", $("input[name='t_input']").val());
+  $("input[name='t_input']").val("");
+}
+</script>
+</head>
+<body>
+<div class="container">
+  <form onSubmit="event.preventDefault();">
+    <div id="ipArea"></div>
+    <input type="hidden" name="port" value="7878"> 
+    <textarea name="content" placeholder="Your message log" style="height:200px"></textarea>
+    <input type="text" name="t_input" placeholder="Your message.."> 
+  </form>
+</div>
+
+</body>
+</html>
